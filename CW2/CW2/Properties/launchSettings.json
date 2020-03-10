@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CW2": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\\\Users\\\\Taras\\\\Desktop\\\\APBD_CW2\\\\CW2\\\\CW2\\\\bin\\\\Debug\\\\netcoreapp3.1\\\\Data\\\\dane.csv C:\\Users\\Taras\\Desktop\\dane2.txt xml"
+    }
+  }
+}
