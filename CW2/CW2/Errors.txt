@@ -1,0 +1,4 @@
+Zbigniew,Kowalski35,Sztuka Nowych Mediów dzienne,,4450,2000-02-12,35@pjwstk.edu.pl,Alina,Adam - Wrong data format
+Karolina,Nowak36,Sztuka Nowych Mediów dzienne,,4455,2000-02-12,36@pjwstk.edu.pl,Alina,Adam - Wrong data format
+Aleksandra,,Sztuka Nowych Mediów dzienne,Dzienne,4434,2000-02-12,42@pjwstk.edu.pl,Alina,Adam - Wrong data format
+Jolanta,Nowak96,Sztuka Nowych Mediów uzupełniające magisterskie,Dzienne,4756,2000-02-12,96@pjwstk.edu.pl,, - Wrong data format
