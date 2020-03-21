@@ -5,36 +5,69 @@ using System.Xml.Serialization;
 
 namespace CW2
 {
+ 
+    public class ActiveStudies
+    {
+        public string Name { get; set; }
+        public int CountOfStudents { get; set; }
+    }
 
+    public class Studies
+    {
+        public string name { get; set; }
+        public string mode { get; set; }
+    }
+     
+    public class Uczelnia
+    { 
+        public string createdAt = DateTime.UtcNow.ToString("dd.MM.yyyy");
+        public string author = "Taras Kostiuk";
+        public HashSet<Student> studenci = new HashSet<Student>();
+        public List<ActiveStudies> ActiveSt = new List<ActiveStudies>();
 
+        public void AddActiveStudies(ActiveStudies studies)
+        {
+            ActiveSt.Add(studies);
+        }
+
+        public void AddNewStudents(Student student)
+        {
+            studenci.Add(student);
+        }
+    }
 
     public class Student
     {
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Study { get; set; }
-        public string Tryb { get; set; }
-        public int Index { get; set; }
-        public string Urodzenia { get; set; }
-        public string Email { get; set; }
-        public string MotherName { get; set; }
-        public string FatherName { get; set; }
+        public string fname { get; set; }
+        public string lname { get; set; }
+        public string name { get; set; }
+        public string mode { get; set; }
+        [XmlAttribute]
+        public string indexNumber { get; set; }
+        public string birthdate { get; set; }
+        public string email { get; set; }
+        public string mothersName { get; set; }
+        public string fathersName { get; set; }
+        public Studies studies { get; set; }
     }
 
-    class StudentComparer : IEqualityComparer<Student>
+    public class StudentComparer : IEqualityComparer<Student>
     {
         public bool Equals(Student x, Student y)
         {
-            if (x.Index != y.Index) return false;
-            if (!x.Name.Equals(y.Name)) return false;
-            if (!x.Surname.Equals(y.Surname)) return false;
-            return true;
-        }
-        public int GetHashCode(Student obj)
-        {
-            return obj.Index;
+            return StringComparer
+                .InvariantCultureIgnoreCase
+                .Equals(
+                    $"{x.fname} {x.lname} {x.indexNumber}",
+                    $"{y.fname} {y.lname} {y.indexNumber}");
         }
 
+        public int GetHashCode(Student o)
+        {
+            return StringComparer
+                .CurrentCultureIgnoreCase
+                .GetHashCode($"{o.fname} {o.lname} {o.indexNumber}");
+        }
     }
 
     class Program
@@ -42,73 +75,120 @@ namespace CW2
         static void Main(string[] args)
         {
 
+            string add1 = args.Length > 0 ? args[0] : @"dane.csv";
+            string add2 = args.Length > 1 ? args[1] : @"Data/test.xml";
+            string type = args.Length > 2 ? args[2] : "xml";
 
 
 
-            /*
-            if (args[0] is null || args[1] is null )
-            {
-                args[0] = @"Data\dane.csv";
-                args[1] = "result.xml";
-                args[2] = "xml";
-            }
-            */
-
-            string path = @"Data\dane.csv";
-
+            StreamWriter sw = new StreamWriter(@"Data/Errors.txt");
 
             var students = new HashSet<Student>(new StudentComparer());
-            // var students = new List<Student>();
+            var studies = new HashSet<ActiveStudies>();
 
-            var plik = new FileInfo(path);
-            using (var stream = new StreamReader(plik.OpenRead()))
+            if (!File.Exists(add1) || !File.Exists(add2))
+            {
+                try
+                {
+                    throw new FileNotFoundException("File does not exist");
+                }
+                catch (FileNotFoundException ex)
+                {
+                    sw.WriteLine($"{ex.Message}");
+                    sw.Close();
+                    return;
+                }
+            }
+
+            Uczelnia ucz = new Uczelnia();
+            int CSStud = 0;
+            int MAstud = 0;
+
+            var plik = new FileInfo(add1);
+            using (var stream = new StreamReader(File.OpenRead(Path.GetFullPath(add1))))
             {
                 string line = null;
                 while ((line = stream.ReadLine()) != null)
                 {
-                    string[] info = line.Split(',');
+                    string[] data = line.Split(',');
 
-                    var student = new Student
+                    if (data.Length != 9)
                     {
-                        Name = info[0],
-                        Surname = info[1],
-                        Study = info[2],
-                        Tryb = info[3],
-                        Index = int.Parse(info[4]),
-                        Urodzenia = info[5],
-                        Email = info[6],
-                        MotherName = info[7],
-                        FatherName = info[8]
-                    };
+                        try
+                        {
+                            throw new FormatException("Wrong data format");
+                        }
+                        catch (FormatException ex)
+                        {
+                            sw.WriteLine($"{line} - {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        bool check = true;
+                        for (int i = 0; i < data.Length; i++)
+                        {
+                            if (data[i].Equals(""))
+                            {
+                                check = false;
+                                try
+                                {
+                                    throw new FormatException("Wrong data format");
+                                }
+                                catch (FormatException ex)
+                                {
+                                    sw.WriteLine($"{line} - {ex.Message}");
+                                }
+                                break;
+                            }
+                        }
 
-                    students.Add(student);
+                        if (check)
+                        {
+
+                            if (data[2].Contains("Informatyka"))
+                            {
+                                CSStud++;
+                            }
+                            else
+                            {
+                                MAstud++;
+                            }
+
+                            var student = new Student
+                            {
+                                fname = data[0],
+                                lname = data[1],
+                                //  name = data[2],
+                                //  mode = data[3],
+                                indexNumber = $"s{data[4]}",
+                                birthdate = data[5],
+                                email = data[6],
+                                mothersName = data[7],
+                                fathersName = data[8],
+                                studies = new Studies()
+                                {
+                                    name = data[2],
+                                    mode = data[3],
+                                }
+                            };
+                            ucz.AddNewStudents(student);
+
+                        }
+                    }
                 }
+
             }
+            sw.Close();
 
-
-
-            FileStream writer = new FileStream("C:\\Users\\Taras\\Desktop\\dama2.xml", FileMode.Create);
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Student>));
-
-            var listStudents = new List<Student>();
-
-            foreach (var stud in students)
-            {
-                listStudents.Add(stud);
-            }
-            serializer.Serialize(writer, listStudents);
-
-            //Console.WriteLine(line);
-
+            ActiveStudies acts = new ActiveStudies { Name = "Computer Science", CountOfStudents = CSStud };
+            ActiveStudies acts2 = new ActiveStudies { Name = "New Media Art", CountOfStudents = MAstud };
+            ucz.AddActiveStudies(acts);
+            ucz.AddActiveStudies(acts2);
+          
+            FileStream writer = new FileStream(add2, FileMode.Create);
+            XmlSerializer serializer = new XmlSerializer(typeof(Uczelnia));
+            serializer.Serialize(writer, ucz);
         }
     }
-
-
 }
-
-
-
-
-
-
-
